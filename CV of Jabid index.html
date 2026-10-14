@@ -1,318 +1,887 @@
-from pathlib import Path
-from zipfile import ZipFile, ZIP_DEFLATED
-
-out_dir = Path("/mnt/data/jabid_achievement_portfolio")
-out_dir.mkdir(parents=True, exist_ok=True)
-
-html = r'''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Jabid Sarder — student, competitor, and lifelong learner. Explore my competition journey and achievements." />
-  <title>Jabid Sarder | Achievement Portfolio</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+        content="Abu Jabid Sarder's achievements, competitions, dreams, and journey since 2019.">
+  <title>Abu Jabid Sarder | My Journey</title>
+
   <style>
     :root {
-      --bg: #07111f; --panel: #0c1b2d; --panel2: #10243a; --line: #1d3550;
-      --text: #edf5ff; --muted: #a8bbd0; --blue: #4da3ff; --blue2: #1976e8;
-      --gold: #f3c969; --radius: 18px; --shadow: 0 18px 50px #0003;
+      --bg: #07111f;
+      --panel: #0d2035;
+      --border: #24405b;
+      --text: #edf5ff;
+      --muted: #a8bbd0;
+      --blue: #64adff;
+      --gold: #f3c969;
+      --teal: #78dcca;
     }
+
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-    body { margin: 0; background: radial-gradient(ellipse at 80% 0%, #142c49 0, var(--bg) 48%); color: var(--text); font: 16px/1.6 system-ui, -apple-system, Segoe UI, sans-serif; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at top right, #173656, transparent 50%),
+        var(--bg);
+      font: 16px/1.65 system-ui, sans-serif;
+    }
+
     a { color: inherit; text-decoration: none; }
-    button, input, select { font: inherit; }
-    .container { width: min(1160px, calc(100% - 32px)); margin: auto; }
-    header { position: sticky; top: 0; z-index: 20; background: #07111feF; border-bottom: 1px solid var(--line); backdrop-filter: blur(12px); }
-    nav { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 72px; }
-    .brand { font-weight: 850; letter-spacing: -.03em; font-size: 1.2rem; }
-    .brand span { color: var(--blue); }
-    .navlinks { display: flex; flex-wrap: wrap; gap: 18px; color: var(--muted); font-size: .92rem; }
-    .navlinks a:hover { color: white; }
-    .hero { display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: stretch; padding: 56px 0 30px; }
-    .hero-copy, .hero-art, .panel { border: 1px solid var(--line); background: linear-gradient(145deg, #0d2035, #091726); border-radius: var(--radius); box-shadow: var(--shadow); }
-    .hero-copy { padding: clamp(25px, 5vw, 54px); }
-    .eyebrow { color: var(--blue); font-weight: 750; text-transform: uppercase; letter-spacing: .14em; font-size: .78rem; }
-    h1 { font-size: clamp(2.7rem, 6vw, 5rem); line-height: 1.02; letter-spacing: -.06em; margin: 14px 0; }
+    button { font: inherit; cursor: pointer; }
+    img { max-width: 100%; }
+
+    .container {
+      width: min(1120px, calc(100% - 36px));
+      margin-inline: auto;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #07111ff2;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      min-height: 76px;
+    }
+
+    .brand { font-size: 1.1rem; font-weight: 800; }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .nav-links a:hover { color: var(--blue); }
+
+    section {
+      padding-block: 34px;
+      scroll-margin-top: 130px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 24px;
+      padding-top: 54px;
+    }
+
+    .panel, .card, .stat, .language, .milestone {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(145deg, var(--panel), #091726);
+    }
+
+    .panel { padding: 28px; }
+
+    .hero-copy { padding: clamp(26px, 5vw, 48px); }
+
+    .eyebrow {
+      color: var(--blue);
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 18px 0;
+      font-size: clamp(2.6rem, 7vw, 5rem);
+      letter-spacing: -.06em;
+      line-height: 1.05;
+    }
+
     h1 span { color: var(--blue); }
-    .lead { max-width: 620px; color: var(--muted); font-size: 1.1rem; }
-    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 25px; }
-    .btn { border: 1px solid var(--line); border-radius: 11px; padding: 11px 17px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--panel2); color: var(--text); cursor: pointer; }
-    .btn.primary { background: linear-gradient(120deg, var(--blue2), var(--blue)); color: #04101e; border-color: transparent; font-weight: 800; }
-    .hero-art { display: flex; flex-direction: column; justify-content: space-between; min-height: 320px; padding: 26px; background: radial-gradient(circle at 70% 25%, #1f5484, transparent 37%), linear-gradient(145deg, #102d49, #07111f); overflow: hidden; }
-    .monogram { font-size: clamp(5rem, 12vw, 9rem); font-weight: 900; line-height: 1; letter-spacing: -.1em; color: #d6eaff; text-shadow: 0 12px 45px #4da3ff33; align-self: center; margin: 22px 0; }
-    .art-caption { color: #c5d9ed; font-size: .95rem; }
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 0 0 34px; }
-    .stat { background: #0b1a2a; border: 1px solid var(--line); padding: 20px; border-radius: 15px; }
-    .stat strong { display: block; font-size: 1.8rem; color: var(--blue); line-height: 1.2; }
-    .stat small { color: var(--muted); }
-    section { padding: 26px 0; scroll-margin-top: 88px; }
-    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 15px; margin-bottom: 18px; }
-    h2 { margin: 0; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -.04em; }
-    .sub { color: var(--muted); margin: 4px 0 0; }
-    .panel { padding: 24px; }
-    .about-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 22px; }
-    .muted { color: var(--muted); }
-    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .pill { background: #142c45; border: 1px solid #234260; color: #c7e2ff; padding: 5px 10px; border-radius: 999px; font-size: .85rem; }
-    .achievement-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-    .achievement { border: 1px solid var(--line); border-radius: 15px; background: #0b1a2a; padding: 19px; min-height: 180px; display: flex; flex-direction: column; gap: 9px; }
-    .achievement .icon { font-size: 1.7rem; }
-    .achievement h3 { margin: 0; font-size: 1.05rem; }
-    .achievement p { margin: 0; color: var(--muted); font-size: .93rem; }
-    .tag { color: var(--gold); font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
-    .toolbar input, .toolbar select { background: #081626; color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
-    .toolbar input { flex: 1; min-width: 180px; }
-    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
-    table { width: 100%; border-collapse: collapse; min-width: 650px; }
-    th, td { padding: 13px 15px; text-align: left; border-bottom: 1px solid var(--line); }
-    th { color: #c8ddf2; background: #10243a; font-size: .86rem; }
-    td { color: var(--muted); }
-    tr:last-child td { border-bottom: 0; }
-    .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .year { padding: 17px; border-left: 3px solid var(--blue); background: #0b1a2a; border-radius: 0 12px 12px 0; }
-    .year strong { font-size: 1.3rem; color: var(--blue); }
-    .year p { margin: 5px 0 0; color: var(--muted); font-size: .9rem; }
-    .gallery-note { border: 1px dashed #355675; border-radius: 14px; padding: 28px; text-align: center; color: var(--muted); }
-    .cv-box { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-    footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 28px 0; color: var(--muted); font-size: .9rem; }
-    .footer-inner { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    h2 { margin: 0; font-size: 2rem; letter-spacing: -.035em; }
+    h3 { line-height: 1.4; }
+    p { margin: 12px 0; }
+
+    .lead, .muted { color: var(--muted); }
+    .lead { font-size: 1.08rem; }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 11px 17px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: #142c45;
+      color: var(--text);
+    }
+
+    .btn:hover { border-color: var(--blue); }
+
+    .btn.primary, .filter[aria-pressed="true"] {
+      color: var(--bg);
+      background: var(--blue);
+      border-color: var(--blue);
+      font-weight: 750;
+    }
+
+    .hero-art {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+      padding: 32px;
+      background:
+        radial-gradient(circle at center, #235d91, transparent 65%),
+        #0b1a2a;
+    }
+
+    .monogram {
+      margin: 28px 0;
+      color: #d6eaff;
+      font-size: clamp(6rem, 15vw, 10rem);
+      font-weight: 900;
+      letter-spacing: -.08em;
+      line-height: 1;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .stat { padding: 22px; }
+
+    .stat strong {
+      display: block;
+      color: var(--blue);
+      font-size: 2rem;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .stat span { color: var(--muted); font-size: .9rem; }
+
+    .section-heading { margin-bottom: 22px; }
+    .section-heading p { color: var(--muted); margin-bottom: 0; }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .competition-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .card { padding: 23px; }
+
+    .card h3 {
+      margin: 12px 0;
+      font-size: 1.05rem;
+    }
+
+    .tag {
+      color: var(--blue);
+      font-size: .76rem;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .school { color: var(--teal); font-weight: 650; }
+    .position { color: var(--gold); font-weight: 800; font-size: 1.15rem; }
+
+    .timeline, .languages, .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .milestone, .language { padding: 24px; }
+    .milestone strong { color: var(--blue); font-size: 1.4rem; }
+    .milestone p { color: var(--muted); }
+
+    .dream-text {
+      max-width: 850px;
+      font-size: 1.2rem;
+      line-height: 1.8;
+    }
+
+    .language h3 { margin: 0 0 12px; }
+    .language strong { color: var(--gold); font-size: 1.6rem; }
+    .language p { color: var(--muted); font-size: .9rem; }
+
+    .photo {
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+    }
+
+    .photo img {
+      display: block;
+      width: 100%;
+      height: 270px;
+      object-fit: cover;
+    }
+
+    .photo figcaption { padding: 18px; }
+
+    .photo-placeholder {
+      display: grid;
+      place-content: center;
+      min-height: 230px;
+      padding: 25px;
+      border: 1px dashed var(--border);
+      border-radius: 18px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .photo-placeholder span { font-size: 2.5rem; }
+
+    .cv-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .cv-panel h3 { margin: 0; }
+    .utterances { max-width: 100%; }
+
+    footer {
+      margin-top: 30px;
+      padding-block: 28px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    a:focus-visible, button:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 4px;
+    }
+
     @media (max-width: 850px) {
-      .hero { grid-template-columns: 1fr; padding-top: 28px; }
-      .hero-art { min-height: 230px; }
+      nav {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-block: 16px;
+        gap: 12px;
+      }
+
+      .hero { grid-template-columns: 1fr; }
+      .hero-art { min-height: 240px; }
       .stats { grid-template-columns: repeat(2, 1fr); }
-      .achievement-grid { grid-template-columns: repeat(2, 1fr); }
-      .timeline { grid-template-columns: repeat(2, 1fr); }
-      .about-grid { grid-template-columns: 1fr; }
-      nav { align-items: flex-start; padding: 15px 0; flex-direction: column; }
-      .navlinks { gap: 12px; }
+      .competition-grid { grid-template-columns: repeat(2, 1fr); }
     }
-    @media (max-width: 520px) {
-      .achievement-grid, .timeline { grid-template-columns: 1fr; }
-      .stats { gap: 9px; }
-      .stat { padding: 14px; }
-      .stat strong { font-size: 1.45rem; }
-      .panel { padding: 17px; }
+
+    @media (max-width: 540px) {
+      .competition-grid { grid-template-columns: 1fr; }
+      .panel { padding: 22px; }
+      .stat { padding: 17px; }
+      .stat strong { font-size: 1.65rem; }
+      .nav-links { gap: 10px 14px; }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+
     @media print {
-      header, .actions, .toolbar, #gallery, footer, .btn { display: none !important; }
-      body { background: white; color: #111; }
-      .hero-copy, .hero-art, .panel, .stat, .achievement, .year { background: white; color: #111; box-shadow: none; border-color: #ccc; }
-      .muted, .lead, .sub, td, .achievement p, .year p { color: #333; }
-      .hero { padding-top: 0; }
+      header, footer, .actions, .filters, .btn, #comments, #gallery {
+        display: none !important;
+      }
+
+      body { color: #111; background: white; }
+
+      .panel, .card, .stat, .language, .milestone {
+        color: #111;
+        background: white;
+        border-color: #ccc;
+        break-inside: avoid;
+      }
+
+      .hero { grid-template-columns: 1fr; padding-top: 0; }
+      .hero-art { display: none; }
+      .competition-grid { grid-template-columns: repeat(2, 1fr); }
+      .lead, .muted, .stat span, .milestone p { color: #444; }
+      .school { color: #126354; }
+      .position { color: #805600; }
+      section { padding-block: 18px; }
     }
   </style>
 </head>
+
 <body>
   <header>
-    <nav class="container">
-      <a class="brand" href="#home">JS <span>·</span> Jabid Sarder</a>
-      <div class="navlinks">
-        <a href="#about">About</a><a href="#achievements">Achievements</a><a href="#competitions">Competitions</a><a href="#timeline">Journey</a><a href="#gallery">Gallery</a><a href="#cv">CV</a>
+    <nav class="container" aria-label="Main navigation">
+      <a class="brand" href="#home">JS · Abu Jabid Sarder</a>
+
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#competitions">Competitions</a>
+        <a href="#journey">Journey</a>
+        <a href="#dreams">My Dreams</a>
+        <a href="#languages">Languages</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#cv">CV</a>
+        <a href="#comments">Comments</a>
       </div>
     </nav>
   </header>
 
   <main class="container">
     <section class="hero" id="home">
-      <div class="hero-copy">
+      <div class="panel hero-copy">
         <div class="eyebrow">Student · Competitor · Lifelong learner</div>
-        <h1>Jabid <span>Sarder</span></h1>
-        <p class="lead">Turning challenges into achievements. I enjoy science, mathematics, quizzes, and learning through competition. This is a growing record of my journey.</p>
+
+        <h1>Abu Jabid <span>Sarder</span></h1>
+
+        <p class="lead">
+          Seven years of curiosity, competition, and growth.
+          Welcome to my very first website—a place to share my
+          achievements, experiences, and the journey ahead.
+        </p>
+
         <div class="actions">
-          <a class="btn primary" href="#achievements">Explore achievements ↓</a>
-          <button class="btn" onclick="window.print()">Print / Save CV as PDF ↗</button>
+          <a class="btn primary" href="#competitions">
+            Explore my competitions ↓
+          </a>
+          <button class="btn" type="button" onclick="window.print()">
+            Print / Save as PDF
+          </button>
         </div>
       </div>
-      <div class="hero-art" aria-label="Personal portfolio cover">
-        <div class="eyebrow">My journey · 2022 onward</div>
-        <div class="monogram">JS</div>
-        <div class="art-caption">“Keep learning. Keep competing. Keep growing.”</div>
+
+      <div class="panel hero-art">
+        <div class="eyebrow">My journey · Since 2019</div>
+        <div class="monogram" aria-hidden="true">JS</div>
+        <p>Keep learning. Keep competing. Keep growing.</p>
       </div>
     </section>
 
-    <div class="stats" aria-label="Portfolio statistics">
-      <div class="stat"><strong id="competitionCount">Add yours</strong><span>Competitions</span><br><small>Update with your verified total</small></div>
-      <div class="stat"><strong id="winCount">Add yours</strong><span>Wins & top placements</span><br><small>Use an accurate count</small></div>
-      <div class="stat"><strong>2022–</strong><span>Competition journey</span><br><small>Continuing to grow</small></div>
-      <div class="stat"><strong>🇧🇩</strong><span>Based in Bangladesh</span><br><small>Future goals ahead</small></div>
+    <div class="stats" aria-label="My competition statistics">
+      <div class="stat">
+        <strong>140+</strong>
+        <span>Competitions participated in</span>
+      </div>
+      <div class="stat">
+        <strong>7 years</strong>
+        <span>Since 2019 · As of 2026</span>
+      </div>
+      <div class="stat">
+        <strong>21</strong>
+        <span>Local Olympiad wins</span>
+      </div>
+      <div class="stat">
+        <strong>4</strong>
+        <span>Competition categories</span>
+      </div>
     </div>
 
     <section id="about">
-      <div class="section-head"><div><h2>About me</h2><p class="sub">A short introduction to the person behind the certificates.</p></div></div>
-      <div class="panel about-grid">
-        <div>
-          <p>I'm Jabid Sarder, a student from Bangladesh with an interest in science, mathematics, general knowledge, and competitive learning. Competitions have helped me practise problem-solving, resilience, and learning from both wins and losses.</p>
-          <p class="muted">My current priority is my education, while I continue building a record of meaningful competition experiences and working toward future goals.</p>
-        </div>
-        <div>
-          <h3>Areas of interest</h3>
-          <div class="pill-row"><span class="pill">Science Olympiads</span><span class="pill">Mathematics</span><span class="pill">Physics</span><span class="pill">Biology</span><span class="pill">General Knowledge</span><span class="pill">Quiz competitions</span></div>
-          <h3 style="margin-top:22px">Skills to develop</h3>
-          <div class="pill-row"><span class="pill">Problem solving</span><span class="pill">Research</span><span class="pill">Time management</span><span class="pill">Communication</span><span class="pill">Teamwork</span></div>
-        </div>
+      <div class="section-heading">
+        <h2>About me</h2>
       </div>
-    </section>
 
-    <section id="achievements">
-      <div class="section-head"><div><h2>Selected achievements</h2><p class="sub">Highlight verified results here; add more as your journey continues.</p></div></div>
-      <div class="achievement-grid" id="achievementGrid">
-        <article class="achievement"><div class="icon">🏆</div><div class="tag">2025</div><h3>Youthsphere Science Fusion</h3><p>3-Segment Winner</p></article>
-        <article class="achievement"><div class="icon">🥇</div><div class="tag">2025</div><h3>National Biology Carnival — Season 2</h3><p>Zoology Champion / 1st Place</p></article>
-        <article class="achievement"><div class="icon">🏅</div><div class="tag">2025</div><h3>BDOC Mathematics Olympiad</h3><p>Finalist</p></article>
-        <article class="achievement"><div class="icon">🧪</div><div class="tag">2026</div><h3>BDOC Chemistry Olympiad</h3><p>Finalist</p></article>
-        <article class="achievement"><div class="icon">🥇</div><div class="tag">2026</div><h3>Crest Special Competition</h3><p>1st Place</p></article>
-        <article class="achievement"><div class="icon">🧠</div><div class="tag">2026</div><h3>Quiz Crown Bangladesh</h3><p>General Knowledge Winner</p></article>
-        <article class="achievement"><div class="icon">🏆</div><div class="tag">2026</div><h3>BDOAA E-Regional</h3><p>Winner</p></article>
-        <article class="achievement"><div class="icon">⭐</div><div class="tag">2026</div><h3>UASC GK & IQ</h3><p>Rank 10</p></article>
-        <article class="achievement"><div class="icon">🔬</div><div class="tag">2026</div><h3>Mekviora Apex STEM</h3><p>Maths and Science Finalist</p></article>
+      <div class="panel">
+        <p>
+          I am Abu Jabid Sarder. I am 18 years old and I am from
+          Bangladesh. This is my very first website, where I share
+          the competitions I have participated in, my wins, my
+          experiences, and the journey of my life.
+        </p>
       </div>
-      <p class="muted" style="font-size:.88rem">Check competition names, years, and result wording before publishing. This is a starter list—edit it to match your official records.</p>
     </section>
 
     <section id="competitions">
-      <div class="section-head"><div><h2>Competition history</h2><p class="sub">Search and filter the sample records below. Add your full history in the code.</p></div></div>
-      <div class="panel">
-        <div class="toolbar">
-          <input id="searchInput" type="search" placeholder="Search competition name…" aria-label="Search competitions" />
-          <select id="yearFilter" aria-label="Filter by year"><option value="all">All years</option><option>2022</option><option>2023</option><option>2024</option><option>2025</option><option>2026</option><option>2027</option><option>2028</option><option>2029</option></select>
-          <select id="resultFilter" aria-label="Filter by result"><option value="all">All results</option><option value="Winner">Winner</option><option value="Champion">Champion</option><option value="Finalist">Finalist</option><option value="Rank">Rank / Placement</option></select>
+      <div class="section-heading">
+        <h2>My competition showcase</h2>
+        <p>
+          Explore my wins, placements, and participation across
+          institutional, local, national, and international competitions.
+        </p>
+      </div>
+
+      <div class="filters" role="group" aria-label="Competition categories">
+        <button class="btn filter" data-category="All"
+                aria-pressed="true" type="button">All</button>
+        <button class="btn filter" data-category="Institutional"
+                aria-pressed="false" type="button">Institutional</button>
+        <button class="btn filter" data-category="Local"
+                aria-pressed="false" type="button">Local</button>
+        <button class="btn filter" data-category="National"
+                aria-pressed="false" type="button">National</button>
+        <button class="btn filter" data-category="International"
+                aria-pressed="false" type="button">International</button>
+      </div>
+
+      <p id="categorySummary" class="muted" aria-live="polite"></p>
+      <div id="competitionCards" class="competition-grid"></div>
+
+      <noscript>
+        <p>Please enable JavaScript to view the competition showcase.</p>
+      </noscript>
+    </section>
+
+    <section id="journey">
+      <div class="section-heading">
+        <h2>My journey</h2>
+        <p>Every competition adds another chapter.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="milestone">
+          <strong>2019</strong>
+          <p>My competition journey begins.</p>
         </div>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Year</th><th>Competition</th><th>Category</th><th>Result</th></tr></thead>
-          <tbody id="competitionRows"></tbody>
-        </table></div>
-        <p id="emptyState" class="muted" hidden>No competitions match those filters.</p>
+        <div class="milestone">
+          <strong>2019–2026</strong>
+          <p>Seven years of competitions, experiences, and learning.</p>
+        </div>
+        <div class="milestone">
+          <strong>2026</strong>
+          <p>140+ competitions and my first personal website.</p>
+        </div>
+        <div class="milestone">
+          <strong>Looking ahead</strong>
+          <p>National stages, new challenges, and studying abroad.</p>
+        </div>
       </div>
     </section>
 
-    <section id="timeline">
-      <div class="section-head"><div><h2>The journey: 2022–2029</h2><p class="sub">A timeline of your past, present, and intended future. Future entries are goals, not completed achievements.</p></div></div>
-      <div class="timeline">
-        <div class="year"><strong>2022</strong><p>Early competition chapter.</p></div>
-        <div class="year"><strong>2023</strong><p>Continuing to gain experience.</p></div>
-        <div class="year"><strong>2024</strong><p>A quieter year in the journey.</p></div>
-        <div class="year"><strong>2025</strong><p>Return and new achievements.</p></div>
-        <div class="year"><strong>2026</strong><p>More competitions and results.</p></div>
-        <div class="year"><strong>2027</strong><p>O Levels first; selected competitions if possible.</p></div>
-        <div class="year"><strong>2028</strong><p>Potential comeback and new goals.</p></div>
-        <div class="year"><strong>2029</strong><p>A milestone year to look back on progress.</p></div>
+    <section id="dreams">
+      <div class="section-heading">
+        <h2>My Dreams</h2>
+      </div>
+
+      <div class="panel">
+        <p class="dream-text">
+          My dream is to have a wonderful life, participate in all
+          the national Olympiads, represent myself on the national
+          stage, build a successful future, and study abroad.
+        </p>
+      </div>
+    </section>
+
+    <section id="languages">
+      <div class="section-heading">
+        <h2>Languages I am learning</h2>
+        <p>Discovering new ways to connect with the world.</p>
+      </div>
+
+      <div class="languages">
+        <div class="language">
+          <h3>Spanish</h3>
+          <strong>A2</strong>
+        </div>
+        <div class="language">
+          <h3>Italian</h3>
+          <strong>A1</strong>
+        </div>
+        <div class="language">
+          <h3>German</h3>
+          <strong>A1</strong>
+        </div>
+        <div class="language">
+          <h3>French</h3>
+          <strong>Learning</strong>
+          <p>Level not yet specified</p>
+        </div>
+        <div class="language">
+          <h3>Portuguese</h3>
+          <strong>A1</strong>
+        </div>
       </div>
     </section>
 
     <section id="gallery">
-      <div class="section-head"><div><h2>Certificates & gallery</h2><p class="sub">Replace this panel with your own award photos or certificate images.</p></div></div>
-      <div class="gallery-note">
-        <p style="font-size:2rem;margin:0">📸 🏅 📜</p>
-        <h3>Add your real photos</h3>
-        <p>Put image files in an <code>images</code> folder and add image cards in the HTML. Crop out private details like addresses, phone numbers, candidate IDs, and signatures before publishing.</p>
+      <div class="section-heading">
+        <h2>Prizes, certificates & memories</h2>
+        <p>The moments behind the achievements.</p>
       </div>
+
+      <div id="photoGallery" class="gallery"></div>
     </section>
 
     <section id="cv">
-      <div class="section-head"><div><h2>CV & contact</h2><p class="sub">A printable starting point. Add only contact details you want public.</p></div></div>
-      <div class="panel cv-box">
-        <div><h3 style="margin:0 0 6px">Jabid Sarder</h3><p class="muted" style="margin:0">Student · Olympiad and quiz competitor · Bangladesh</p><p class="muted" style="margin:8px 0 0">Education: O Level candidate (edit as needed)</p></div>
-        <div class="actions" style="margin:0"><button class="btn primary" onclick="window.print()">Print / Save as PDF</button><a class="btn" href="#home">Back to top ↑</a></div>
+      <div class="section-heading">
+        <h2>My profile</h2>
+      </div>
+
+      <div class="panel cv-panel">
+        <div>
+          <h3>Abu Jabid Sarder</h3>
+          <p class="muted">
+            18 years old · Bangladesh<br>
+            Competition journey since 2019 · 140+ competitions
+          </p>
+        </div>
+
+        <button class="btn primary" type="button" onclick="window.print()">
+          Print / Save as PDF
+        </button>
+      </div>
+    </section>
+
+    <section id="comments">
+      <div class="section-heading">
+        <h2>Leave your thoughts</h2>
+      </div>
+
+      <div class="panel">
+        <p>
+          Thank you for exploring my journey. Leave an encouraging
+          message, a question, or your thoughts—I’d love to reply.
+        </p>
+
+        <div id="commentsMount">
+          <p class="muted">The guestbook is coming soon.</p>
+        </div>
       </div>
     </section>
   </main>
 
-  <footer><div class="container footer-inner"><span>© <span id="currentYear"></span> Jabid Sarder · Personal achievement portfolio</span><span>Built to grow with the journey.</span></div></footer>
+  <footer>
+    <div class="container footer-content">
+      <span>
+        © <span id="currentYear"></span> Abu Jabid Sarder
+      </span>
+      <a href="#home">Back to top ↑</a>
+    </div>
+  </footer>
 
   <script>
-    // EDIT THIS LIST to add every competition you want to show.
-    // Keep results accurate and use official wording where possible.
+    // Add or edit your competition records here.
+    // Institutional years are omitted because they were not supplied.
     const competitions = [
-      { year: 2025, name: "Youthsphere Science Fusion", category: "Science", result: "3-Segment Winner" },
-      { year: 2025, name: "National Biology Carnival — Season 2", category: "Biology / Zoology", result: "Champion / 1st Place" },
-      { year: 2025, name: "BDOC Mathematics Olympiad", category: "Mathematics", result: "Finalist" },
-      { year: 2025, name: "IYMC", category: "Mathematics", result: "Pre-finalist" },
-      { year: 2025, name: "INKCO", category: "Competition", result: "Finalist" },
-      { year: 2025, name: "ISOC 10", category: "Science", result: "Finalist" },
-      { year: 2025, name: "Bijoy Ullash GK", category: "General Knowledge", result: "Rank 14" },
-      { year: 2026, name: "BDOC Chemistry Olympiad", category: "Chemistry", result: "Finalist" },
-      { year: 2026, name: "Mekviora Apex STEM", category: "Maths and Science", result: "Finalist" },
-      { year: 2026, name: "Crest Special Competition", category: "General", result: "1st Place" },
-      { year: 2026, name: "Quiz Crown Bangladesh", category: "General Knowledge", result: "Winner" },
-      { year: 2026, name: "Topper Hunt SSC", category: "Academic", result: "Finalist — Rank 101" },
-      { year: 2026, name: "UASC GK & IQ", category: "General Knowledge / IQ", result: "Rank 10" },
-      { year: 2026, name: "BDOAA E-Regional", category: "IQ / Physics Quiz", result: "Winner; IQ Quiz 1st; Physics Quiz 9th" }
+      {
+        category: "Institutional",
+        name: "National Science Carnival",
+        school: "St. Gregory’s High School and College",
+        result: "2nd Place"
+      },
+      {
+        category: "Institutional",
+        name: "Physics Olympiad",
+        school: "Dhaka City College",
+        result: "1st Place"
+      },
+      {
+        category: "Institutional",
+        name: "Physics Olympiad",
+        school: "Dhaka College",
+        result: "2nd Place"
+      },
+      {
+        category: "Institutional",
+        name: "Notre Dame National IT Fest — ICT Olympiad",
+        school: "Notre Dame College",
+        result: "12th Place"
+      },
+
+      {
+        category: "Local",
+        name: "General Knowledge Olympiad",
+        result: "2 wins"
+      },
+      {
+        category: "Local",
+        name: "Mathematics Olympiad",
+        result: "7 wins"
+      },
+      {
+        category: "Local",
+        name: "Biology Olympiad",
+        result: "3 wins"
+      },
+      {
+        category: "Local",
+        name: "Chemistry Olympiad",
+        result: "2 wins"
+      },
+      {
+        category: "Local",
+        name: "Physics Olympiad",
+        result: "4 wins"
+      },
+      {
+        category: "Local",
+        name: "IQ Olympiad",
+        result: "1 win"
+      },
+      {
+        category: "Local",
+        name: "IT Olympiad",
+        result: "2 wins"
+      },
+
+      {
+        category: "National",
+        name: "Bangladesh Olympiad Challenge (BDOC) — Mathematics Olympiad",
+        year: 2025,
+        result: "Finalist"
+      },
+      {
+        category: "National",
+        name: "Bangladesh Olympiad Challenge (BDOC) — Mathematics Olympiad",
+        year: 2026,
+        result: "Finalist"
+      },
+      {
+        category: "National",
+        name: "Bangladesh Olympiad Challenge (BDOC) — Chemistry Olympiad",
+        year: 2026,
+        result: "Finalist"
+      },
+      {
+        category: "National",
+        name: "Bangladesh Olympiad of Astronomy and Astrophysics (BDOAA)",
+        year: 2026,
+        result: "E-regional Round Winner"
+      },
+      {
+        category: "National",
+        name: "Bangladesh Mathematical Olympiad (BDMO)",
+        year: 2026,
+        result: "Regional Round Participant"
+      },
+      {
+        category: "National",
+        name: "Banglar Math Excellency Championship (BMEC)",
+        year: 2026,
+        result: "National Round Participant"
+      },
+      {
+        category: "National",
+        name: "Banglar Math Team Championship (BMTC)",
+        year: 2026,
+        result: "National Round Participant"
+      },
+
+      {
+        category: "International",
+        name: "International Youth Mathematic Challenge (IYMC)",
+        year: 2026,
+        result: "Pre-finalist"
+      },
+      {
+        category: "International",
+        name: "Queen’s Commonwealth Essay Writing Competition",
+        year: 2026,
+        result: "Participant"
+      }
     ];
 
-    const rows = document.getElementById("competitionRows");
-    const searchInput = document.getElementById("searchInput");
-    const yearFilter = document.getElementById("yearFilter");
-    const resultFilter = document.getElementById("resultFilter");
-    const emptyState = document.getElementById("emptyState");
+    /*
+      PHOTOS
+      1. Create an images folder in your GitHub repository.
+      2. Upload your photos.
+      3. Add entries to galleryPhotos below.
 
-    function resultMatches(result, filter) {
-      if (filter === "all") return true;
-      const r = result.toLowerCase();
-      if (filter === "Winner") return r.includes("winner");
-      if (filter === "Champion") return r.includes("champion");
-      if (filter === "Finalist") return r.includes("finalist");
-      if (filter === "Rank") return r.includes("rank") || r.includes("place") || r.includes("1st") || r.includes("9th");
-      return true;
-    }
-    function renderCompetitions() {
-      const q = searchInput.value.trim().toLowerCase();
-      const y = yearFilter.value;
-      const f = resultFilter.value;
-      const filtered = competitions.filter(c =>
-        (y === "all" || String(c.year) === y) &&
-        c.name.toLowerCase().includes(q) &&
-        resultMatches(c.result, f)
-      ).sort((a,b) => b.year - a.year || a.name.localeCompare(b.name));
+      Example:
+      const galleryPhotos = [
+        {
+          src: "images/my-award.jpg",
+          alt: "Me holding my competition award",
+          caption: "A memorable award ceremony"
+        },
+        {
+          src: "images/my-certificate.jpg",
+          alt: "My Olympiad certificate",
+          caption: "My Olympiad achievement"
+        }
+      ];
+    */
+    const galleryPhotos = [];
 
-      rows.innerHTML = filtered.map(c =>
-        `<tr><td>${c.year}</td><td>${escapeHTML(c.name)}</td><td>${escapeHTML(c.category)}</td><td>${escapeHTML(c.result)}</td></tr>`
-      ).join("");
-      emptyState.hidden = filtered.length > 0;
-    }
+    /*
+      SHARED COMMENTS — ONE-TIME SETUP
+      1. Make your GitHub repository public and enable Issues.
+      2. Install https://github.com/apps/utterances for that repository.
+      3. Set COMMENTS_REPO to "yourusername/your-repository".
+      4. Commit this file.
+
+      Visitors sign in with GitHub to comment.
+      You can respond in the same comment stream or GitHub issue.
+      Use @username to address a visitor.
+
+      Example:
+      const COMMENTS_REPO = "jabid/jabid.github.io";
+    */
+    const COMMENTS_REPO = "";
+
+    const cards = document.getElementById("competitionCards");
+    const summary = document.getElementById("categorySummary");
+    const filters = document.querySelectorAll("[data-category]");
+
+    let currentCategory = "All";
+
     function escapeHTML(value) {
-      return String(value).replace(/[&<>"']/g, ch => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      })[ch]);
+      return String(value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[character]);
     }
-    searchInput.addEventListener("input", renderCompetitions);
-    yearFilter.addEventListener("change", renderCompetitions);
-    resultFilter.addEventListener("change", renderCompetitions);
-    document.getElementById("currentYear").textContent = new Date().getFullYear();
+
+    function renderCompetitions() {
+      const visible = competitions.filter(competition =>
+        currentCategory === "All" ||
+        competition.category === currentCategory
+      );
+
+      cards.innerHTML = visible.map(competition => `
+        <article class="card">
+          <div class="tag">
+            ${escapeHTML(competition.category)}
+            ${competition.year ? " · " + competition.year : ""}
+          </div>
+
+          <h3>${escapeHTML(competition.name)}</h3>
+
+          ${competition.school ? `
+            <p class="school">${escapeHTML(competition.school)}</p>
+          ` : ""}
+
+          <p class="position">${escapeHTML(competition.result)}</p>
+        </article>
+      `).join("");
+
+      const descriptions = {
+        All: "Highlights from my 140+ competitions. Local entries summarize multiple wins.",
+        Institutional: "My placements in competitions hosted by schools and colleges.",
+        Local: "21 wins across 7 local Olympiad subjects.",
+        National: "My national competition results and participation.",
+        International: "My international competition results and participation."
+      };
+
+      summary.textContent = descriptions[currentCategory];
+    }
+
+    filters.forEach(button => {
+      button.addEventListener("click", () => {
+        currentCategory = button.dataset.category;
+
+        filters.forEach(filter => {
+          filter.setAttribute(
+            "aria-pressed",
+            String(filter === button)
+          );
+        });
+
+        renderCompetitions();
+      });
+    });
+
+    function renderGallery() {
+      const gallery = document.getElementById("photoGallery");
+
+      if (!galleryPhotos.length) {
+        gallery.innerHTML = [
+          "Award moments",
+          "My certificates",
+          "Competition memories"
+        ].map(title => `
+          <div class="photo-placeholder">
+            <span aria-hidden="true">📸</span>
+            <h3>${title}</h3>
+            <p>Photos coming soon</p>
+          </div>
+        `).join("");
+
+        return;
+      }
+
+      gallery.innerHTML = galleryPhotos.map(photo => `
+        <figure class="photo">
+          <img
+            src="${escapeHTML(photo.src)}"
+            alt="${escapeHTML(photo.alt)}"
+            loading="lazy"
+          >
+          <figcaption>${escapeHTML(photo.caption)}</figcaption>
+        </figure>
+      `).join("");
+    }
+
+    function loadComments() {
+      if (!COMMENTS_REPO.trim()) return;
+
+      const mount = document.getElementById("commentsMount");
+      mount.textContent = "";
+
+      const note = document.createElement("p");
+      note.className = "muted";
+      note.textContent =
+        "Sign in with GitHub to leave a public comment. I can respond in the same conversation.";
+      mount.appendChild(note);
+
+      const script = document.createElement("script");
+      script.src = "https://utteranc.es/client.js";
+      script.setAttribute("repo", COMMENTS_REPO);
+      script.setAttribute("issue-term", "pathname");
+      script.setAttribute("theme", "github-dark");
+      script.crossOrigin = "anonymous";
+      script.async = true;
+
+      mount.appendChild(script);
+    }
+
+    // Print every category, then restore the visitor's selection.
+    let categoryBeforePrint = "All";
+
+    window.addEventListener("beforeprint", () => {
+      categoryBeforePrint = currentCategory;
+      currentCategory = "All";
+      renderCompetitions();
+    });
+
+    window.addEventListener("afterprint", () => {
+      currentCategory = categoryBeforePrint;
+      renderCompetitions();
+    });
+
+    document.getElementById("currentYear").textContent =
+      new Date().getFullYear();
+
     renderCompetitions();
+    renderGallery();
+    loadComments();
   </script>
 </body>
 </html>
-'''
-
-readme = """JABID SARDER — ACHIEVEMENT PORTFOLIO
-
-FILES
-- index.html: the complete responsive website (HTML, CSS and JavaScript in one file).
-
-HOW TO USE
-1. Extract the ZIP file.
-2. Open index.html in a web browser to preview the site.
-3. Edit index.html in a text editor such as VS Code or Notepad.
-4. Find the `const competitions = [...]` list near the bottom to add/edit competition records.
-5. Edit the sample text and achievements to ensure every name, year, and result is accurate.
-6. To publish for free, create a GitHub repository named `yourusername.github.io`, upload index.html, and enable GitHub Pages in repository Settings > Pages.
-
-CUSTOMIZATION
-- Search for "Jabid Sarder" to edit the name.
-- The stat cards currently say "Add yours" so you can enter accurate totals.
-- The gallery is a placeholder; you can add your own photos after creating an `images` folder.
-- Do not publish private information from certificates, including phone numbers, addresses, candidate IDs, or signatures.
-- Future timeline entries are goals, not completed achievements.
-"""
-
-(out_dir / "index.html").write_text(html, encoding="utf-8")
-(out_dir / "README.txt").write_text(readme, encoding="utf-8")
-zip_path = Path("/mnt/data/jabid_achievement_portfolio.zip")
-with ZipFile(zip_path, "w", ZIP_DEFLATED) as zf:
-    zf.write(out_dir / "index.html", arcname="jabid_achievement_portfolio/index.html")
-    zf.write(out_dir / "README.txt", arcname="jabid_achievement_portfolio/README.txt")
-
-print(f"Created: {out_dir / 'index.html'}")
-print(f"Created: {zip_path}")
